@@ -14,7 +14,6 @@
 # limitations under the License.
 #
 ################################################################################
-
 declare -r FUZZ_TARGET_QUERY='
   let all_fuzz_tests = attr(tags, "fuzz_target", "test/...") in
   $all_fuzz_tests - attr(tags, "no_fuzz", $all_fuzz_tests)
@@ -52,6 +51,7 @@ fi
 # environment variables that are understood by rules_fuzzing.
 export FUZZING_CFLAGS="$CFLAGS"
 export FUZZING_CXXFLAGS="$CXXFLAGS"
+printenv
 
 # Disable instrumentation in various external libraries. These 
 # are fuzzed elsewhere.
