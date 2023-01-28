@@ -31,5 +31,6 @@ RUN apt-get update && apt-get -y install  \
     python3
 
 RUN git clone https://github.com/envoyproxy/envoy.git
+RUN echo "custom execution"
 WORKDIR $SRC/envoy/
 COPY build.sh $SRC/

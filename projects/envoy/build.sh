@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 ################################################################################
-printenv
+echo "This is custom execution"
 declare -r FUZZ_TARGET_QUERY='
   let all_fuzz_tests = attr(tags, "fuzz_target", "test/...") in
   $all_fuzz_tests - attr(tags, "no_fuzz", $all_fuzz_tests)
