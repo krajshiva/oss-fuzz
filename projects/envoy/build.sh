@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 ################################################################################
-
+echo "This is custom execution"
 declare -r FUZZ_TARGET_QUERY='
   let all_fuzz_tests = attr(tags, "fuzz_target", "test/...") in
   $all_fuzz_tests - attr(tags, "no_fuzz", $all_fuzz_tests)
@@ -45,6 +45,26 @@ then
 elif [ "$SANITIZER" = "address" ]
 then
   echo "--copt=-D__SANITIZE_ADDRESS__" "--copt=-DADDRESS_SANITIZER=1" "--linkopt=-fsanitize=address"
+fi
+if [ -n "$CFL_EXTRA_BAZEL_REMOTE_CACHE" ]
+then
+  echo "--remote_cache=${CFL_EXTRA_BAZEL_REMOTE_CACHE}"
+fi
+if [ -n "$CFL_EXTRA_BAZEL_REMOTE_INSTANCE" ]
+then
+  echo "--remote_instance_name=${CFL_EXTRA_BAZEL_REMOTE_INSTANCE}"
+fi
+if [ -n "${CFL_EXTRA_BAZEL_TOKEN}" ]
+then
+  #create temp file with creds
+  GCP_SERVICE_ACCOUNT_KEY_FILE=$(mktemp -t gcp_service_account.XXXXXX.json)
+  gcp_service_account_cleanup() {
+    rm -rf "${GCP_SERVICE_ACCOUNT_KEY_FILE}"
+  }
+
+  trap gcp_service_account_cleanup EXIT
+  bash -c 'echo "${CFL_EXTRA_BAZEL_TOKEN}"' > "${GCP_SERVICE_ACCOUNT_KEY_FILE}"
+  echo "--google_credentials=${GCP_SERVICE_ACCOUNT_KEY_FILE}"
 fi
 )"
 
