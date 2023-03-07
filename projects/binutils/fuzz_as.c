@@ -17,6 +17,19 @@ limitations under the License.
  */
 #include <fuzz_as.h>
 
+/* Don't allow cleanups.  libiberty's function of the same name adds
+   cleanups to a list without any means of clearing the list.  The
+   list must be clear at the start if LLVMFuzzerTestOneInput is to run
+   more than once, otherwise we will get multiple copies of the same
+   cleanup on the list which leads to double frees if xexit is called.
+   Also a cleanup from the first run can result in use-after-free
+   errors when as_fatal is hit as in issue 56429.  */
+int
+xatexit (void (*fn) (void) ATTRIBUTE_UNUSED)
+{
+  return 0;
+}
+
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
 int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
   char filename[256];
@@ -30,20 +43,21 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
   reg_section = NULL;
 
-  const char *fakeArgv[3];
-  int fakeArgc = 2;
+  char *fakeArgv[3];
   fakeArgv[0] = "fuzz_as";
   fakeArgv[1] = filename; // Assemble our fake source file.
   fakeArgv[2] = NULL;
 
-  gas_early_init (&fakeArgc, &fakeArgv);
+  int argc = 2;
+  char **argv = fakeArgv;
+  gas_early_init (&argc, &argv);
 
   out_file_name = "/tmp/tmp-out";
 
   gas_init ();
 
   // Main fuzzer target. Assemble our random data.
-  perform_an_assembly_pass (2, (char**)fakeArgv);
+  perform_an_assembly_pass (argc, argv);
 
   // Cleanup
   cond_finish_check (-1);
